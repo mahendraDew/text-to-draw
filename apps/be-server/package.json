@@ -15,6 +15,9 @@
   "dependencies": {
     "@repo/typescript-config": "*",
     "@types/express": "^5.0.6",
-    "express": "^5.2.1"
+    "bcrypt": "^6.0.0",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "zod": "^4.3.4"
   }
 }

@@ -14,7 +14,9 @@
   "type": "commonjs",
   "dependencies": {
     "@repo/typescript-config": "*",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/ws": "^8.18.1",
+    "jsonwebtoken": "^9.0.3",
     "ws": "^8.18.3"
   }
 }

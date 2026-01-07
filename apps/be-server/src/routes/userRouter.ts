@@ -1,9 +1,10 @@
 import { Router } from "express"
 import bcrypt from "bcrypt"
-import { z } from "zod"
 import jwt from "jsonwebtoken"
 import { userMiddleware } from "../middleware/userMiddleware";
 import {CreateUserSchema, SignInSchema, CreateRoomSchema} from "@repo/common/types";
+import { prismaClient } from "@repo/db/client";
+
 export const userRouter = Router();
 
 import {JWT_SECRET} from "@repo/be-common/config"
@@ -46,14 +47,14 @@ userRouter.post("/signup", async (req, res)=>{
         }
         )
         //TODO: hit the db and check if any entry is ther with this email (email must be uniue)
-        // await prisma.user.create({
-        //     data: {
-        //         email: email,
-        //         password: hashedpass,
-        //         lastname: lastname,
-        //         firstname: firstname
-        //     }
-        // })
+        await prismaClient.user.create({
+            data: {
+                email: email,
+                password: hashedpass,
+                lastname: lastname,
+                firstname: firstname
+            }
+        })
 
         //TODO: put the data in the db
         
@@ -69,7 +70,7 @@ userRouter.post("/signup", async (req, res)=>{
 })
 
 
-userRouter.post("/signin", (req, res)=>{
+userRouter.post("/signin", async (req, res)=>{
     const parsedDataWithSuccess  = SignInSchema.safeParse(req.body);
     if(!parsedDataWithSuccess.success){
         res.json({
@@ -81,22 +82,26 @@ userRouter.post("/signin", (req, res)=>{
     const {email, password} = req.body;
     
     //TODO: find if there any user with this email
-    // const user = // hit the db and if not user then run below logic 
-    // if(!user){
-    //     res.json({
-    //         msg: "user not found"
-    //     })
-    // }
+    // hit the db and if not user then run below logic 
+    const user = await prismaClient.user.findFirst({
+        where: {email: email}
+    })
+    if(!user){
+        res.json({
+            msg: "user not found with this email"
+        })
+    }
     // console.log("pass:", password)
-    // console.log("user pass:", user.pass)
-    // const passMatch = await bcrypt.compare(password, user.pass);
+    // console.log("user pass:", user?.password)
+    const passMatch = await bcrypt.compare(password, user?.password ? user?.password : "");
+    // console.log("passmatch : ", passMatch);
 
-    //dummy data 
-        const passMatch = true   
-        const user = {"id":1};
+    // //dummy data 
+    //     const passMatch = true   
+    //     const user = {"id":1};
     if(passMatch){
         const token = jwt.sign({
-            id: user.id
+            id: user?.id
         }, JWT_SECRET)
 
         res.json({

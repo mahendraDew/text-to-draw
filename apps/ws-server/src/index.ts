@@ -4,7 +4,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 const PORT = 8080;
 const wss = new WebSocketServer({port: PORT});
 console.log(`ws server is running on ${PORT}...`)
-const USER_JWT_SECRET=process.env.USER_JWT_SECRET || "JsonewbtokenSECRET";
+import {JWT_SECRET} from "@repo/be-common/config"
 
 wss.on("connection", function connection(ws, req){
     // this is way to extract the token from url by using query params
@@ -25,7 +25,7 @@ wss.on("connection", function connection(ws, req){
         return;
     }
     
-    const decode = jwt.verify(token, USER_JWT_SECRET);
+    const decode = jwt.verify(token, JWT_SECRET);
     if(!decode || !(decode as JwtPayload).userId){
         ws.close();
         return;

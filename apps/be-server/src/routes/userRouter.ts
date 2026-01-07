@@ -1,11 +1,12 @@
 import { Router } from "express"
-import { bcrypt } from "bcrypt"
+import bcrypt from "bcrypt"
 import { z } from "zod"
-import { jwt } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import { userMiddleware } from "../middleware/userMiddleware";
+import {CreateUserSchema, SignInSchema, CreateRoomSchema} from "@repo/common/types";
 export const userRouter = Router();
 
-const USER_JWT_SECRET=process.env.USER_JWT_SECRET || "JsonewbtokenSECRET";
+import {JWT_SECRET} from "@repo/be-common/config"
 //endpoints
 userRouter.get("/health", (req, res)=>{
     res.json({
@@ -15,31 +16,46 @@ userRouter.get("/health", (req, res)=>{
 
 
 userRouter.post("/signup", async (req, res)=>{
-    //zod validation
-    const reqUserData = z.object({
-        email: z.email(),
-        password: z.string().min(8).max(30),
-        firstname: z.string().min(3).max(20),
-        lastname: z.string().min(3).max(30)
-    })
-    const parsedDataWithSuccess  = reqUserData.safeParse(req.body);
-    if(!parsedDataWithSuccess){
+    // //zod validation
+    // const reqUserData = z.object({
+    //     email: z.email(),
+    //     password: z.string().min(8).max(30),
+    //     firstname: z.string().min(3).max(20),
+    //     lastname: z.string().min(3).max(30)
+    // })
+    // const parsedDataWithSuccess  = reqUserData.safeParse(req.body);
+    const parsedDataWithSuccess  = CreateUserSchema.safeParse(req.body);
+    if(!parsedDataWithSuccess.success){
         res.json({
             msg: "something wrong in input",
-            error: parsedDataWithSuccess.error
+            //TODO: provide valid error log
+            error: parsedDataWithSuccess
         })
     }
     //user data from req after zod validation
     const {email, password, firstname, lastname} = req.body;
-
     try {
         //hashed password
         const hashedpass = await bcrypt.hash(password, 5);
+        console.log({
+                    email: email,
+                    password: hashedpass,
+                    lastname: lastname,
+                    firstname: firstname
 
+        }
+        )
         //TODO: hit the db and check if any entry is ther with this email (email must be uniue)
+        // await prisma.user.create({
+        //     data: {
+        //         email: email,
+        //         password: hashedpass,
+        //         lastname: lastname,
+        //         firstname: firstname
+        //     }
+        // })
 
         //TODO: put the data in the db
-
         
         res.json({
             msg: "user signup succeeded!"
@@ -54,8 +70,16 @@ userRouter.post("/signup", async (req, res)=>{
 
 
 userRouter.post("/signin", (req, res)=>{
+    const parsedDataWithSuccess  = SignInSchema.safeParse(req.body);
+    if(!parsedDataWithSuccess.success){
+        res.json({
+            msg: "something wrong in input",
+            //TODO: provide valid error log
+            error: parsedDataWithSuccess
+        })
+    }
     const {email, password} = req.body;
-
+    
     //TODO: find if there any user with this email
     // const user = // hit the db and if not user then run below logic 
     // if(!user){
@@ -73,7 +97,7 @@ userRouter.post("/signin", (req, res)=>{
     if(passMatch){
         const token = jwt.sign({
             id: user.id
-        }, USER_JWT_SECRET)
+        }, JWT_SECRET)
 
         res.json({
             msg: "jwt token",
@@ -89,6 +113,17 @@ userRouter.post("/signin", (req, res)=>{
 })
 
 userRouter.post("/room", userMiddleware, (req, res) => {
+    
+        const parsedDataWithSuccess  = CreateRoomSchema.safeParse(req.body);
+        if(!parsedDataWithSuccess.success){
+            res.json({
+                msg: "something wrong in input",
+                //TODO: provide valid error log
+                error: parsedDataWithSuccess
+            })
+        }
+
+    
         //TODO: db call
 
         res.json({

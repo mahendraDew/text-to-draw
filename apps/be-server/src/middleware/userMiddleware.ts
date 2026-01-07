@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload }  from "jsonwebtoken";
 
-const USER_JWT_SECRET=process.env.USER_JWT_SECRET || "JsonewbtokenSECRET";
+// const USER_JWT_SECRET=process.env.USER_JWT_SECRET || "JsonewbtokenSECRET";
+import {JWT_SECRET} from "@repo/be-common/config"
 
 export function userMiddleware(req: Request, res: Response, next: NextFunction){
     const token = req.headers.authorization;
@@ -11,10 +12,10 @@ export function userMiddleware(req: Request, res: Response, next: NextFunction){
     }
     try{
 
-        const decode = jwt.verify(token, USER_JWT_SECRET) as JwtPayload;
+        const decode = jwt.verify(token, JWT_SECRET) as JwtPayload;
         
         if(decode){
-            req.user.id = decode.id;
+            req.userId = decode.id;
             next(); 
         }
     }catch (err) {

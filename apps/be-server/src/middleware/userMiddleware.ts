@@ -10,7 +10,7 @@ export function userMiddleware(req: Request, res: Response, next: NextFunction){
     if (!token) {
         return res.status(401).json({ message: "No token provided" });
     }
-    try{
+    // try{
 
         const decode = jwt.verify(token, JWT_SECRET) as JwtPayload;
         
@@ -18,9 +18,11 @@ export function userMiddleware(req: Request, res: Response, next: NextFunction){
             req.userId = decode.id;
             next(); 
         }
-    }catch (err) {
-    
-        return res.status(401).json({ message: "Invalid token" });
-    }
+        // else{
+        //     console.log("fasle h ye")
+        // }
+    // }catch (err) {
+    //     return res.status(401).json({ message: "Invalid token" });
+    // }
 
 }

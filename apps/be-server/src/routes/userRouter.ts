@@ -130,29 +130,62 @@ userRouter.post("/room", userMiddleware, async (req, res) => {
     
         const parsedData  = CreateRoomSchema.safeParse(req.body);
         if(!parsedData.success){
-            res.json({
+            return res.json({
                 msg: "something wrong in input",
                 //TODO: provide valid error log
                 error: parsedData
             })
         }
-        const userId = req.userId
-        const {name} = req.body;
-        await prismaClient.room.create({
-            data:  {
-                slug: name,
-                adminId: userId
-            }
-        })
+        try {
+            
+            const userId = req.userId
+            // const name = parsedData.data.name;
+            const room = await prismaClient.room.create({
+                data:  {
+                    slug: parsedData.data.name,
+                    adminId: userId
+                }
+            })
+            
+                //TODO: db call
+                res.json({
+                    //TODO: fix this.. shouldnt return hardcoded value 
+                    roomId : room.id
+                })
+        } catch (error) {
+            console.log("this is ther error: ");
+            console.log(error);
+            
+        }
 
-        console.log("hii from /room ")
-
-    
-        //TODO: db call
-        res.json({
-            //TODO: fix this.. shouldnt return hardcoded value 
-            roomId : 123
-        })
 })
 
+userRouter.get("/chats/:roomId", async (req, res)=> {
+    const roomId = Number(req.params.roomId);
+    const messages = await prismaClient.chat.findMany({
+        where: {
+            roomId: roomId
+        }, orderBy: {
+            id: "desc"
+        }, take: 50
+    })
 
+    res.json({
+        msg: messages
+    })
+
+})
+
+userRouter.get("/room/:slug", async (req, res)=> {
+    const slug = req.params.slug;
+    const room = await prismaClient.room.findFirst({
+        where: {
+            slug: slug
+        }
+    })
+
+    res.json({
+        room: room
+    })
+
+})
